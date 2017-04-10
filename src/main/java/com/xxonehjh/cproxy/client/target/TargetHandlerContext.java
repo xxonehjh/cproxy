@@ -22,12 +22,15 @@ public class TargetHandlerContext {
 	private final int id;
 	private List<byte[]> cache;
 	private Channel targetChannel;
+	private Channel clientChannel;
 
-	public TargetHandlerContext(final ClientContext context, ChannelHandlerContext ctx, int id) {
+	public TargetHandlerContext(final ClientContext context, ChannelHandlerContext clientChannelHandlerContext,
+			int id) {
 		this.id = id;
 		this.cache = new LinkedList<byte[]>();
-		ChannelFuture f = context.getTargetBootstrap(ctx).connect(context.getConfig().getTargetHost(),
-				context.getConfig().getTargetPort());
+		ChannelFuture f = context.getTargetBootstrap(clientChannelHandlerContext)
+				.connect(context.getConfig().getTargetHost(), context.getConfig().getTargetPort());
+		this.clientChannel = clientChannelHandlerContext.channel();
 		this.targetChannel = f.channel();
 		this.targetChannel.attr(Constants.ATTR_KEY_ID).set(id);
 		f.addListener(new ChannelFutureListener() {
@@ -51,7 +54,7 @@ public class TargetHandlerContext {
 				cache.clear();
 			}
 			if (null != datas && datas.length > 0) {
-				logger.info("写入目标通道{}:{}", targetChannel,datas.length);
+				logger.info("写入目标通道{}:{}", targetChannel, datas.length);
 				targetChannel.writeAndFlush(Unpooled.copiedBuffer(datas)).addListener(READ_OR_CLOSE);
 			}
 		}
@@ -60,7 +63,7 @@ public class TargetHandlerContext {
 	public void write(byte[] datas) {
 		if (targetChannel.isActive()) {
 			writeCache();
-			logger.info("写入目标通道{}:{}", targetChannel,datas.length);
+			logger.info("写入目标通道{}:{}", targetChannel, datas.length);
 			targetChannel.writeAndFlush(Unpooled.copiedBuffer(datas)).addListener(READ_OR_CLOSE);
 		} else {
 			synchronized (cache) {
@@ -89,5 +92,9 @@ public class TargetHandlerContext {
 			}
 		}
 	};
+
+	public Channel getClientChannel() {
+		return clientChannel;
+	}
 
 }

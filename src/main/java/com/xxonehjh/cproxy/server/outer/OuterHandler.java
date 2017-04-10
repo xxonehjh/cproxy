@@ -7,7 +7,6 @@ import com.xxonehjh.cproxy.Constants;
 import com.xxonehjh.cproxy.protocol.IMsg;
 import com.xxonehjh.cproxy.protocol.MsgProxyData;
 import com.xxonehjh.cproxy.server.ServerContext;
-import com.xxonehjh.cproxy.server.inner.InnerChannelManage;
 import com.xxonehjh.cproxy.util.ChannelUtils;
 
 import io.netty.buffer.ByteBuf;
@@ -21,47 +20,47 @@ public class OuterHandler extends ChannelInboundHandlerAdapter {
 
 	private static final Logger logger = LogManager.getLogger(OuterHandler.class);
 	private ServerContext serverContext;
-	private InnerChannelManage innerChannelManage;
+	private Channel innerChannel;
 	private int port;
 
-	public OuterHandler(ServerContext serverContext, int port) {
+	public OuterHandler(ServerContext serverContext, Channel innerChannel, int port) {
 		this.serverContext = serverContext;
-		this.innerChannelManage = serverContext.getInnerChannelManage(port);
+		this.innerChannel = innerChannel;
 		this.port = port;
 	}
 
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		super.channelActive(ctx);
-		if (innerChannelManage.isEnable()) {
+		if (innerChannel.isActive()) {
 			serverContext.getOuterChannelManage().reg(ctx.channel(), port);
 		} else {
-			logger.error("服务不可用,端口{}", innerChannelManage.getPort());
+			logger.error("服务不可用,端口{}", port);
 			ChannelUtils.closeOnFlush(ctx.channel());
 		}
 	}
 
 	@Override
 	public void channelRead(final ChannelHandlerContext ctx, Object msg) {
-		final Channel channel = innerChannelManage.getChannel();
-		if (null == channel) {
-			logger.error("服务不可用,端口:{}:msg:{}", innerChannelManage.getPort(), msg);
-			ChannelUtils.closeOnFlush(ctx.channel());
+		final Channel currentChannel = ctx.channel();
+		if (!innerChannel.isActive()) {
+			logger.error("服务不可用,端口:{}:msg:{}", port, msg);
+			ChannelUtils.closeOnFlush(currentChannel);
 		} else {
 			ByteBuf m = (ByteBuf) msg;
 			byte[] datas = new byte[m.readableBytes()];
 			m.readBytes(datas);
-			logger.info("读取外部通道{}:{}",ctx.channel(),datas.length);
-			IMsg obj = new MsgProxyData(ctx.channel().attr(Constants.ATTR_KEY_ID).get(), datas);
-			channel.writeAndFlush(obj).addListener(new ChannelFutureListener() {
+			logger.info("读取外部通道{}:{}", currentChannel, datas.length);
+			IMsg obj = new MsgProxyData(currentChannel.attr(Constants.ATTR_KEY_ID).get(), datas);
+			innerChannel.writeAndFlush(obj).addListener(new ChannelFutureListener() {
 				@Override
 				public void operationComplete(ChannelFuture future) {
 					if (future.isSuccess()) {
-						ctx.channel().read();
+						currentChannel.read();
 					} else {
-						logger.error("写入失败,端口:{},ex:({})", innerChannelManage.getPort(),future.cause());
-						ChannelUtils.closeOnFlush(channel);
-						ChannelUtils.closeOnFlush(ctx.channel());
+						logger.error("写入失败,端口:{},ex:({})", port, future.cause());
+						ChannelUtils.closeOnFlush(innerChannel);
+						ChannelUtils.closeOnFlush(currentChannel);
 					}
 				}
 			});
@@ -73,7 +72,7 @@ public class OuterHandler extends ChannelInboundHandlerAdapter {
 		super.channelInactive(ctx);
 		serverContext.getOuterChannelManage().remove(ctx.channel());
 	}
-	
+
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		super.exceptionCaught(ctx, cause);

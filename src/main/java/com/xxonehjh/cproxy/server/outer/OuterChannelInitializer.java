@@ -22,6 +22,7 @@ public class OuterChannelInitializer extends ChannelInitializer<SocketChannel> {
 		if (serverContext.getConfig().isDebug()) {
 			pipe.addLast(new LoggingHandler(LogLevel.INFO));
 		}
-		pipe.addLast(new OuterHandler(serverContext, ch.localAddress().getPort()));
+		int port = ch.localAddress().getPort();
+		pipe.addLast(serverContext.getInnerChannelManage(port).getOuterHandler());
 	}
 }

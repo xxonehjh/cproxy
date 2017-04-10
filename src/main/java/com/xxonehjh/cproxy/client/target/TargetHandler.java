@@ -5,7 +5,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.xxonehjh.cproxy.Constants;
 import com.xxonehjh.cproxy.client.ClientContext;
-import com.xxonehjh.cproxy.protocol.IMsg;
 import com.xxonehjh.cproxy.protocol.MsgProxyData;
 import com.xxonehjh.cproxy.util.ChannelUtils;
 
@@ -30,27 +29,32 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 		ByteBuf m = (ByteBuf) msg;
 		byte[] datas = new byte[m.readableBytes()];
 		m.readBytes(datas);
-		logger.info("从目标通道读取{}:{}",ctx.channel(),datas.length);
-		final IMsg obj = new MsgProxyData(ctx.channel().attr(Constants.ATTR_KEY_ID).get(), datas);
-		context.getClientChannelManage().getChannel().writeAndFlush(obj).addListener(new ChannelFutureListener() {
-			@Override
-			public void operationComplete(ChannelFuture future) {
-				if (future.isSuccess()) {
-					ctx.channel().read();
-				} else {
-					logger.info("写入数据失败:{}:ex({})", obj, future.cause());
-					future.channel().close();
-				}
-			}
-		});
+		logger.info("从目标通道读取{}:{}", ctx.channel(), datas.length);
+		final MsgProxyData obj = new MsgProxyData(getId(ctx), datas);
+		context.getTargetChannelManage().get(obj.getId()).getClientChannel().writeAndFlush(obj)
+				.addListener(new ChannelFutureListener() {
+					@Override
+					public void operationComplete(ChannelFuture future) {
+						if (future.isSuccess()) {
+							ctx.channel().read();
+						} else {
+							logger.info("写入数据失败:{}:ex({})", obj, future.cause());
+							future.channel().close();
+						}
+					}
+				});
 	}
 
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 		super.channelInactive(ctx);
 		if (ctx.channel().hasAttr(Constants.ATTR_KEY_ID)) {
-			logger.info("目标通道失效:{}",ctx.channel());
-			context.getTargetChannelManage().remove(ctx.channel().attr(Constants.ATTR_KEY_ID).get());
+			logger.info("目标通道失效:{}", ctx.channel());
+			context.getTargetChannelManage().remove(getId(ctx));
 		}
+	}
+
+	private int getId(ChannelHandlerContext ctx) {
+		return ctx.channel().attr(Constants.ATTR_KEY_ID).get();
 	}
 
 	@Override

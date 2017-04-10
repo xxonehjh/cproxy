@@ -24,13 +24,17 @@ public class TargetChannelManage {
 		this.targets = new java.util.concurrent.ConcurrentHashMap<>();
 	}
 
-	public TargetHandlerContext get(ChannelHandlerContext channelHandlerContext, int id) {
+	public TargetHandlerContext get(int id) {
+		return targets.get(id);
+	}
+
+	public TargetHandlerContext get(ChannelHandlerContext clientChannelHandlerContext, int id) {
 		TargetHandlerContext handler = targets.get(id);
 		if (null == handler) {
 			synchronized (this) {
 				handler = targets.get(id);
 				if (null == handler) {
-					handler = new TargetHandlerContext(context, channelHandlerContext, id);
+					handler = new TargetHandlerContext(context, clientChannelHandlerContext, id);
 					targets.put(id, handler);
 					logger.info("注册【reg】目标通道:{}:id:{}", handler.getChannel(), id);
 				}
@@ -42,7 +46,7 @@ public class TargetChannelManage {
 	public void remove(final int id) {
 		final TargetHandlerContext targetHandler = targets.get(id);
 		if (null != targetHandler) {
-			context.getClientChannelManage().getChannel().writeAndFlush(new MsgProxyClose(id))
+			targetHandler.getClientChannel().writeAndFlush(new MsgProxyClose(id))
 					.addListener(new ChannelFutureListener() {
 						@Override
 						public void operationComplete(ChannelFuture future) throws Exception {

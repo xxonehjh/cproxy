@@ -2,7 +2,6 @@ package com.xxonehjh.cproxy.client.core;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,15 +16,9 @@ public class ClientChannelManage {
 
 	private static final Logger logger = LogManager.getLogger(ClientChannelManage.class);
 	private List<Channel> channels;
-	private AtomicLong rand;
 
 	public ClientChannelManage(ClientContext clientContext) {
 		this.channels = new CopyOnWriteArrayList<>();
-		this.rand = new AtomicLong(0);
-	}
-
-	public Channel getChannel() {
-		return channels.get((int) (this.rand.incrementAndGet() % channels.size()));
 	}
 
 	public void reg(Channel channel) {
