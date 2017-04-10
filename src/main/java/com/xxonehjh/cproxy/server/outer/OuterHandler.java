@@ -45,7 +45,7 @@ public class OuterHandler extends ChannelInboundHandlerAdapter {
 	public void channelRead(final ChannelHandlerContext ctx, Object msg) {
 		final Channel currentChannel = ctx.channel();
 		if (!innerChannel.isActive()) {
-			logger.error("服务不可用,端口:{}:msg:{}", port, msg);
+			logger.error("内部服务不可用,端口:{},外部请求:{}", port,currentChannel);
 			ChannelUtils.closeOnFlush(currentChannel);
 		} else {
 			ByteBuf m = (ByteBuf) msg;
