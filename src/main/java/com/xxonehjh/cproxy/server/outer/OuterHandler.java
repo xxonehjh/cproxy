@@ -16,6 +16,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
+@io.netty.channel.ChannelHandler.Sharable
 public class OuterHandler extends ChannelInboundHandlerAdapter {
 
 	private static final Logger logger = LogManager.getLogger(OuterHandler.class);

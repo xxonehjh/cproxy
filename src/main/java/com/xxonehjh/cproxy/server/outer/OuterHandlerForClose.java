@@ -8,6 +8,7 @@ import com.xxonehjh.cproxy.util.ChannelUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
+@io.netty.channel.ChannelHandler.Sharable
 public class OuterHandlerForClose extends ChannelInboundHandlerAdapter {
 
 	private static final Logger logger = LogManager.getLogger(OuterHandlerForClose.class);
