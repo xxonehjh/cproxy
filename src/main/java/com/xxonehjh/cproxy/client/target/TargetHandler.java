@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import com.xxonehjh.cproxy.Constants;
 import com.xxonehjh.cproxy.client.ClientContext;
 import com.xxonehjh.cproxy.protocol.MsgProxyData;
+import com.xxonehjh.cproxy.util.ByteUtils;
 import com.xxonehjh.cproxy.util.ChannelUtils;
 
 import io.netty.buffer.ByteBuf;
@@ -25,20 +26,18 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 	}
 
 	@Override
-	public void channelRead(final ChannelHandlerContext ctx, Object msg) {
-		ByteBuf m = (ByteBuf) msg;
-		byte[] datas = new byte[m.readableBytes()];
-		m.readBytes(datas);
-		logger.info("从目标通道读取{}:{}", ctx.channel(), datas.length);
-		final MsgProxyData obj = new MsgProxyData(getId(ctx), datas);
-		context.getTargetChannelManage().get(obj.getId()).getClientChannel().writeAndFlush(obj)
+	public void channelRead(final ChannelHandlerContext ctx, Object obj) {
+		byte[] datas = ByteUtils.read((ByteBuf) obj);
+		logger.info("从目标通道读取{}:数据长度:{}", ctx.channel(), datas.length);
+		final MsgProxyData msg = new MsgProxyData(getId(ctx), datas);
+		context.getTargetChannelManage().get(msg.getId()).getClientChannel().writeAndFlush(msg)
 				.addListener(new ChannelFutureListener() {
 					@Override
 					public void operationComplete(ChannelFuture future) {
 						if (future.isSuccess()) {
 							ctx.channel().read();
 						} else {
-							logger.info("写入数据失败:{}:ex({})", obj, future.cause());
+							logger.info("写入数据失败:{}:ex({})", msg, future.cause());
 							future.channel().close();
 						}
 					}

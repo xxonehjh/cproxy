@@ -6,9 +6,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.xxonehjh.cproxy.Constants;
 import com.xxonehjh.cproxy.client.ClientContext;
 import com.xxonehjh.cproxy.protocol.MsgPingReq;
+import com.xxonehjh.cproxy.util.ChannelUtils;
 
 import io.netty.channel.Channel;
 
@@ -23,7 +23,6 @@ public class ClientChannelManage {
 
 	public void reg(Channel channel) {
 		logger.info("注册【reg】通道:{}", channel);
-		channel.attr(Constants.ATTR_KEY_TIME).set(System.currentTimeMillis());
 		channels.add(channel);
 	}
 
@@ -38,7 +37,7 @@ public class ClientChannelManage {
 
 	public void heartbeat() {
 		for (Channel channel : channels) {
-			if (System.currentTimeMillis() - channel.attr(Constants.ATTR_KEY_TIME).get() > Constants.CLIENT_TIMEOUT) {
+			if (ChannelUtils.isTimeout(channel)) {
 				logger.info("连接超时:{}", channel);
 				channel.close();
 			} else {

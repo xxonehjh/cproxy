@@ -13,6 +13,7 @@ public class ByteArrayUtil {
 		if (1 == arr.size()) {
 			return arr.get(0);
 		}
+
 		// Merge the specified arrays into one array.
 		int length = 0;
 		for (byte[] a : arr) {
@@ -25,7 +26,7 @@ public class ByteArrayUtil {
 		if (length == 0) {
 			return Constants.EMPTY_BYTES;
 		}
-		
+
 		byte[] mergedArray = new byte[length];
 		for (int i = 0, j = 0; i < arr.size(); i++) {
 			byte[] a = arr.get(i);

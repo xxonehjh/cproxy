@@ -54,7 +54,7 @@ public class TargetHandlerContext {
 				cache.clear();
 			}
 			if (null != datas && datas.length > 0) {
-				logger.info("写入目标通道{}:{}", targetChannel, datas.length);
+				logger.info("写入目标通道:{}:数据长度:{}", targetChannel, datas.length);
 				targetChannel.writeAndFlush(Unpooled.copiedBuffer(datas)).addListener(READ_OR_CLOSE);
 			}
 		}
@@ -63,7 +63,7 @@ public class TargetHandlerContext {
 	public void write(byte[] datas) {
 		if (targetChannel.isActive()) {
 			writeCache();
-			logger.info("写入目标通道{}:{}", targetChannel, datas.length);
+			logger.info("写入目标通道:{}:数据长度:{}", targetChannel, datas.length);
 			targetChannel.writeAndFlush(Unpooled.copiedBuffer(datas)).addListener(READ_OR_CLOSE);
 		} else {
 			synchronized (cache) {
@@ -76,8 +76,12 @@ public class TargetHandlerContext {
 		return this.id;
 	}
 
-	public Channel getChannel() {
+	public Channel getTargetChannel() {
 		return this.targetChannel;
+	}
+
+	public Channel getClientChannel() {
+		return clientChannel;
 	}
 
 	private static final ChannelFutureListener READ_OR_CLOSE = new ChannelFutureListener() {
@@ -86,15 +90,11 @@ public class TargetHandlerContext {
 			if (future.isSuccess()) {
 				future.channel().read();
 			} else {
-				logger.error("发送数据失败{}:id:{}:ex:({})", future.channel(),
+				logger.error("发送数据失败:{}:id:{}:ex:({})", future.channel(),
 						future.channel().attr(Constants.ATTR_KEY_ID).get(), future.cause());
 				future.channel().close();
 			}
 		}
 	};
-
-	public Channel getClientChannel() {
-		return clientChannel;
-	}
 
 }

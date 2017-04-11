@@ -26,7 +26,7 @@ public class OuterServer {
 			final ServerBootstrap b = new ServerBootstrap();
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
-			if(context.getConfig().isDebug()){
+			if (context.getConfig().isDebug()) {
 				b.handler(new LoggingHandler(LogLevel.INFO));
 			}
 			b.childHandler(new OuterChannelInitializer(context));
@@ -39,7 +39,7 @@ public class OuterServer {
 						logger.info("启动外部服务,端口:{}", current);
 						try {
 							channel.sync().channel().closeFuture().sync();
-						} catch (InterruptedException e) {
+						} catch (Exception e) {
 							logger.error("启动外部服务失败,端口:" + current, e);
 							System.exit(-1);
 						}
@@ -51,7 +51,7 @@ public class OuterServer {
 				ChannelFuture channel = b.bind(ports[0]);
 				logger.info("启动外部服务,端口:{}", ports[0]);
 				channel.sync().channel().closeFuture().sync();
-			} catch (InterruptedException e) {
+			} catch (Exception e) {
 				logger.error("启动外部服务失败,端口:" + ports[0], e);
 				System.exit(-1);
 			}

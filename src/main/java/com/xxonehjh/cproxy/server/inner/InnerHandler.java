@@ -31,22 +31,29 @@ public class InnerHandler extends ChannelInboundHandlerAdapter {
 	}
 
 	@Override
+	public void channelActive(ChannelHandlerContext ctx) throws Exception {
+		super.channelActive(ctx);
+		ChannelUtils.updateActiveTime(ctx.channel());
+	}
+
+	@Override
 	public void channelRead(final ChannelHandlerContext ctx, Object obj) {
 		IMsg msg = (IMsg) obj;
 		if (msg instanceof MsgPingReq) {
+			ChannelUtils.updateActiveTime(ctx.channel());
 			ctx.channel().writeAndFlush(MsgPingResp.INSTANCE);
 		} else if (ctx.channel().hasAttr(Constants.ATTR_KEY_PROXY_PORT)) {
 			if (msg instanceof MsgProxy) {
 				MsgProxy msgProxy = (MsgProxy) msg;
 				Channel client = context.getOuterChannelManage().get(msgProxy.getId());
 				if (null == client) {
-					logger.error("未能找到客户端:{}:{}", msgProxy.getId(), obj);
+					logger.error("未能找到客户通道:{}:{}", msgProxy.getId(), obj);
 				} else if (!client.isWritable()) {
-					logger.error("客户端未能写入数据:{}:{}:{}", client, msgProxy.getId(), obj);
+					logger.error("客户通道未能写入数据:{}:{}:{}", client, msgProxy.getId(), obj);
 					ChannelUtils.closeOnFlush(client);
 				} else {
 					if (obj instanceof MsgProxyData) {
-						logger.info("写入外部通道{}:{}",client,msg);
+						logger.info("写入外部通道{}:{}", client, msg);
 						client.writeAndFlush(Unpooled.copiedBuffer(((MsgProxyData) obj).getData()));
 					} else if (obj instanceof MsgProxyClose) {
 						ChannelUtils.closeOnFlush(client);
@@ -72,15 +79,6 @@ public class InnerHandler extends ChannelInboundHandlerAdapter {
 		}
 	}
 
-	@Override
-	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		super.channelInactive(ctx);
-		if (ctx.channel().hasAttr(Constants.ATTR_KEY_PROXY_PORT)) {
-			context.getInnerChannelManage(ctx.channel().attr(Constants.ATTR_KEY_PROXY_PORT).get())
-					.remove(ctx.channel());
-		}
-	}
-	
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		super.exceptionCaught(ctx, cause);

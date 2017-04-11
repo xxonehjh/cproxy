@@ -3,7 +3,6 @@ package com.xxonehjh.cproxy.client.core;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.xxonehjh.cproxy.Constants;
 import com.xxonehjh.cproxy.client.ClientContext;
 import com.xxonehjh.cproxy.client.target.TargetHandlerContext;
 import com.xxonehjh.cproxy.protocol.IMsg;
@@ -29,6 +28,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		super.channelActive(ctx);
+		ChannelUtils.updateActiveTime(ctx.channel());
 		Channel channel = ctx.channel();
 		context.getClientChannelManage().reg(channel);
 		MsgConnect connect = new MsgConnect();
@@ -41,7 +41,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
 	public void channelRead(ChannelHandlerContext ctx, Object obj) {
 		IMsg msg = (IMsg) obj;
 		if (msg instanceof MsgPingResp) {
-			ctx.channel().attr(Constants.ATTR_KEY_TIME).set(System.currentTimeMillis());
+			ChannelUtils.updateActiveTime(ctx.channel());
 		} else {
 			if (msg instanceof MsgProxyData) {
 				MsgProxyData data = (MsgProxyData) msg;

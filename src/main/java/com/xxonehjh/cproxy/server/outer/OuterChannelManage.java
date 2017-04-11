@@ -23,19 +23,14 @@ public class OuterChannelManage {
 	}
 
 	public void reg(Channel channel, int port) {
-
 		if (idSeed.get() == Integer.MAX_VALUE) {
 			idSeed.compareAndSet(Integer.MAX_VALUE, 0);
 		}
-
 		int id = idSeed.incrementAndGet();
-
 		logger.info("注册【reg】外部服务:{}:id:{}:port:{}", channel, id, port);
 		channel.attr(Constants.ATTR_KEY_ID).set(id);
 		channel.attr(Constants.ATTR_KEY_PROXY_PORT).set(port);
 		clients.put(id, channel);
-		channel.read();
-
 	}
 
 	public void remove(Channel channel) {

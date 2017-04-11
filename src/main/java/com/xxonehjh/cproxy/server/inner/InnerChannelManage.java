@@ -11,8 +11,11 @@ import com.xxonehjh.cproxy.Constants;
 import com.xxonehjh.cproxy.server.ServerContext;
 import com.xxonehjh.cproxy.server.outer.OuterHandler;
 import com.xxonehjh.cproxy.server.outer.OuterHandlerForClose;
+import com.xxonehjh.cproxy.util.ChannelUtils;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInboundHandler;
 
 public class InnerChannelManage {
@@ -20,46 +23,88 @@ public class InnerChannelManage {
 	private static final Logger logger = LogManager.getLogger(InnerChannelManage.class);
 
 	private ServerContext serverContext;
-	private AtomicLong rand;
-	private List<InnerChannelHolder> channels;
+	private List<InnerChannelHolder> channelHolders;
 	private OuterHandlerForClose outerHandlerForClose;
+	private AtomicLong randomIndex;
 	private int port;
 
 	public InnerChannelManage(ServerContext serverContext, int port) {
 		this.serverContext = serverContext;
-		this.rand = new AtomicLong(0);
-		this.channels = new CopyOnWriteArrayList<>();
+		this.channelHolders = new CopyOnWriteArrayList<>();
 		this.outerHandlerForClose = new OuterHandlerForClose(port);
+		this.randomIndex = new AtomicLong(0);
 		this.port = port;
 	}
 
-	public boolean isEnable() {
-		return channels.size() > 0;
-	}
-
-	public ChannelInboundHandler getOuterHandler() {
-		if (!isEnable()) {
+	public ChannelInboundHandler getOuterChannelHandler() {
+		if (channelHolders.size() == 0) {
 			return outerHandlerForClose;
 		}
-		InnerChannelHolder c = channels.get((int) (this.rand.incrementAndGet() % channels.size()));
-		return c.getOuterHandler();
-	}
-
-	public void remove(Channel channel) {
-		logger.info("注销【remove】内部服务:{}:代理端口:{}", channel, port);
-		channels.remove(channel);
+		InnerChannelHolder holder = channelHolders
+				.get((int) (this.randomIndex.incrementAndGet() % channelHolders.size()));
+		if (!holder.getInnerChannel().isActive()) {
+			logger.info("内部服务不可用:{}:代理端口:{}", holder.getInnerChannel(), port);
+			closeAndRemove(holder);
+			return getOuterChannelHandler();
+		} else if (ChannelUtils.isTimeout(holder.getInnerChannel())) {
+			logger.info("内部服务心跳超时:{}:代理端口:{}", holder.getInnerChannel(), port);
+			closeAndRemove(holder);
+			return getOuterChannelHandler();
+		}
+		return holder.getOuterHandler();
 	}
 
 	public void reg(Channel channel) {
 		logger.info("注册【reg】内部服务:{}:代理端口:{}", channel, port);
 		channel.attr(Constants.ATTR_KEY_PROXY_PORT).set(port);
-		OuterHandler handler = new OuterHandler(this.serverContext, channel, port);
-		InnerChannelHolder holder = new InnerChannelHolder(channel, handler);
-		channels.add(holder);
+		InnerChannelHolder holder = new InnerChannelHolder(channel);
+		channel.closeFuture().addListener(holder);
+		channelHolders.add(holder);
 	}
 
 	public int getPort() {
 		return port;
+	}
+
+	void closeAndRemove(InnerChannelHolder holder) {
+		holder.getInnerChannel().close();
+		remove(holder);
+	}
+
+	void remove(InnerChannelHolder holder) {
+		if (channelHolders.remove(holder)) {
+			logger.info("注销【remove】内部服务:{}:代理端口:{}", holder.getInnerChannel(), port);
+		} else {
+			logger.debug("注销失败【remove】内部服务:{}:代理端口:{}", holder.getInnerChannel(), port);
+		}
+	}
+
+	ServerContext getContext() {
+		return serverContext;
+	}
+
+	class InnerChannelHolder implements ChannelFutureListener {
+
+		private Channel innerChannel;
+		private OuterHandler outerHandler;
+
+		public InnerChannelHolder(Channel innerChannel) {
+			this.innerChannel = innerChannel;
+			this.outerHandler = new OuterHandler(getContext(), innerChannel, getPort());
+		}
+
+		public Channel getInnerChannel() {
+			return innerChannel;
+		}
+
+		public OuterHandler getOuterHandler() {
+			return outerHandler;
+		}
+
+		@Override
+		public void operationComplete(ChannelFuture future) throws Exception {
+			remove(this);
+		}
 	}
 
 }

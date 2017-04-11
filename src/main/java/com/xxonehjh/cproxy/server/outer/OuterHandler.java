@@ -7,6 +7,7 @@ import com.xxonehjh.cproxy.Constants;
 import com.xxonehjh.cproxy.protocol.IMsg;
 import com.xxonehjh.cproxy.protocol.MsgProxyData;
 import com.xxonehjh.cproxy.server.ServerContext;
+import com.xxonehjh.cproxy.util.ByteUtils;
 import com.xxonehjh.cproxy.util.ChannelUtils;
 
 import io.netty.buffer.ByteBuf;
@@ -35,33 +36,31 @@ public class OuterHandler extends ChannelInboundHandlerAdapter {
 		super.channelActive(ctx);
 		if (innerChannel.isActive()) {
 			serverContext.getOuterChannelManage().reg(ctx.channel(), port);
+			ctx.channel().read();
 		} else {
-			logger.error("服务不可用,端口{}", port);
-			ChannelUtils.closeOnFlush(ctx.channel());
+			logger.error("服务不可用,端口:{},外部请求:{}", port, ctx.channel());
+			close(ctx);
 		}
 	}
 
 	@Override
 	public void channelRead(final ChannelHandlerContext ctx, Object msg) {
-		final Channel currentChannel = ctx.channel();
+		final Channel outerChannel = ctx.channel();
 		if (!innerChannel.isActive()) {
-			logger.error("内部服务不可用,端口:{},外部请求:{}", port,currentChannel);
-			ChannelUtils.closeOnFlush(currentChannel);
+			logger.error("内部服务不可用,端口:{},外部请求:{}", port, outerChannel);
+			close(ctx);
 		} else {
-			ByteBuf m = (ByteBuf) msg;
-			byte[] datas = new byte[m.readableBytes()];
-			m.readBytes(datas);
-			logger.info("读取外部通道{}:{}", currentChannel, datas.length);
-			IMsg obj = new MsgProxyData(currentChannel.attr(Constants.ATTR_KEY_ID).get(), datas);
+			byte[] datas = ByteUtils.read((ByteBuf) msg);
+			logger.info("读取外部通道{}:数据长度:{}", outerChannel, datas.length);
+			IMsg obj = new MsgProxyData(outerChannel.attr(Constants.ATTR_KEY_ID).get(), datas);
 			innerChannel.writeAndFlush(obj).addListener(new ChannelFutureListener() {
 				@Override
 				public void operationComplete(ChannelFuture future) {
 					if (future.isSuccess()) {
-						currentChannel.read();
+						outerChannel.read();
 					} else {
-						logger.error("写入失败,端口:{},ex:({})", port, future.cause());
-						ChannelUtils.closeOnFlush(innerChannel);
-						ChannelUtils.closeOnFlush(currentChannel);
+						logger.error("写入失败,端口:{},外部请求:{},ex:({})", port, outerChannel, future.cause());
+						close(ctx);
 					}
 				}
 			});
@@ -78,6 +77,11 @@ public class OuterHandler extends ChannelInboundHandlerAdapter {
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		super.exceptionCaught(ctx, cause);
 		ChannelUtils.exceptionCaught(ctx, cause, logger);
+	}
+
+	private void close(ChannelHandlerContext ctx) {
+		ChannelUtils.closeOnFlush(innerChannel);
+		ChannelUtils.closeOnFlush(ctx.channel());
 	}
 
 }

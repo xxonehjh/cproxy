@@ -18,15 +18,15 @@ public class ServerConfig {
 			throw new RuntimeException("加载配置文件" + Constants.SERVER_CONFIG + "失败", e);
 		}
 	}
-	
-	public boolean isDebug(){
+
+	public boolean isDebug() {
 		return "true".equals(getString("debug"));
 	}
 
 	public String getServerToken() {
 		return getString("server.token");
 	}
-	
+
 	public int getServerInnerPort() {
 		return getInt("server.inner.port");
 	}
