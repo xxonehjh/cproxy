@@ -12,16 +12,22 @@ import com.xxonehjh.cproxy.util.ChannelUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
+@Sharable
 public class TargetHandler extends ChannelInboundHandlerAdapter {
+
+	public static TargetHandler create(ClientContext context) {
+		return new TargetHandler(context);
+	}
 
 	private static final Logger logger = LogManager.getLogger(TargetHandler.class);
 
 	private final ClientContext context;
 
-	public TargetHandler(ClientContext context) {
+	private TargetHandler(ClientContext context) {
 		this.context = context;
 	}
 

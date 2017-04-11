@@ -17,9 +17,11 @@ import com.xxonehjh.cproxy.util.TokenUtils;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
+@Sharable
 public class InnerHandler extends ChannelInboundHandlerAdapter {
 
 	private static final Logger logger = LogManager.getLogger(InnerHandler.class);

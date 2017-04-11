@@ -7,6 +7,7 @@ import com.xxonehjh.cproxy.Constants;
 import com.xxonehjh.cproxy.client.ClientContext;
 import com.xxonehjh.cproxy.protocol.util.Decoder;
 import com.xxonehjh.cproxy.protocol.util.Encoder;
+import com.xxonehjh.cproxy.util.LoggingHandlerUtil;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelInitializer;
@@ -16,8 +17,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 
 public class Client {
 
@@ -34,10 +33,8 @@ public class Client {
 				@Override
 				public void initChannel(SocketChannel ch) throws Exception {
 					ChannelPipeline pipe = ch.pipeline();
-					if (context.getConfig().isDebug()) {
-						pipe.addLast(new LoggingHandler(LogLevel.INFO));
-					}
-					pipe.addLast(new Encoder(), new Decoder(), new ClientHandler(context));
+					pipe.addLast(LoggingHandlerUtil.getInstance(context.getConfig().isDebug()));
+					pipe.addLast(Encoder.INSTANCE, Decoder.INSTANCE, context.getClientHandler());
 				}
 			});
 			final String host = context.getConfig().getServerInnerHost();

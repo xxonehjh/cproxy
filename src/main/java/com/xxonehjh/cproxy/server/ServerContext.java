@@ -4,20 +4,27 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.xxonehjh.cproxy.server.inner.InnerChannelManage;
+import com.xxonehjh.cproxy.server.inner.InnerHandler;
 import com.xxonehjh.cproxy.server.outer.OuterChannelManage;
 
 public class ServerContext {
 
 	private ServerConfig config;
-	private Map<Integer, InnerChannelManage> innerChannelManages = new ConcurrentHashMap<>();
+	private Map<Integer, InnerChannelManage> innerChannelManages;
 	private OuterChannelManage outerChannelManage;
+	private InnerHandler innerHandler;
 
 	public ServerContext(String configPath) {
 		config = new ServerConfig(configPath);
 		innerChannelManages = new ConcurrentHashMap<>();
 		outerChannelManage = new OuterChannelManage(this);
+		innerHandler = new InnerHandler(this);
 	}
 
+	public InnerHandler getInnerHandler() {
+		return innerHandler;
+	}
+	
 	public ServerConfig getConfig() {
 		return config;
 	}

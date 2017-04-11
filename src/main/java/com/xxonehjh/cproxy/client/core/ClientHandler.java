@@ -15,13 +15,19 @@ import com.xxonehjh.cproxy.util.TokenUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelHandler.Sharable;
 
+@Sharable
 public class ClientHandler extends ChannelInboundHandlerAdapter {
+	
+	public static ClientHandler create(ClientContext context){
+		return new ClientHandler(context);
+	}
 
 	private static final Logger logger = LogManager.getLogger(ClientHandler.class);
 	private ClientContext context;
 
-	public ClientHandler(ClientContext context) {
+	private ClientHandler(ClientContext context) {
 		this.context = context;
 	}
 

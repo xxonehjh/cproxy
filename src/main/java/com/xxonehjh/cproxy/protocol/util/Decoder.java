@@ -11,6 +11,7 @@ import com.xxonehjh.cproxy.util.ChannelUtils;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
 /**
@@ -19,9 +20,15 @@ import io.netty.handler.codec.ByteToMessageDecoder;
  * @author xxonehjh
  *
  */
+@Sharable
 public class Decoder extends ByteToMessageDecoder {
 
 	private static Logger logger = LogManager.getLogger(Decoder.class);
+
+	public static final Decoder INSTANCE = new Decoder();
+
+	private Decoder() {
+	}
 
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
@@ -42,7 +49,7 @@ public class Decoder extends ByteToMessageDecoder {
 				in.resetReaderIndex();
 				return;
 			}
-			logger.info("{}读取{}",ctx.channel(),msg);
+			logger.info("{}读取{}", ctx.channel(), msg);
 			out.add(msg);
 			decode(ctx, in, out);
 		} catch (Exception e) {

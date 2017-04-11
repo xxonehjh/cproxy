@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.xxonehjh.cproxy.server.ServerContext;
+import com.xxonehjh.cproxy.util.LoggingHandlerUtil;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -11,8 +12,6 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 
 public class InnerServer {
 
@@ -26,9 +25,7 @@ public class InnerServer {
 			ServerBootstrap b = new ServerBootstrap();
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
-			if(context.getConfig().isDebug()){
-				b.handler(new LoggingHandler(LogLevel.INFO));
-			}
+			b.handler(LoggingHandlerUtil.getInstance(context.getConfig().isDebug()));
 			b.childHandler(new InnerInitializer(context));
 			b.childOption(ChannelOption.AUTO_READ, true);
 			try {
