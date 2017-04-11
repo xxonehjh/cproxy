@@ -58,7 +58,9 @@ public class ClientContext {
 								@Override
 								public void initChannel(SocketChannel ch) throws Exception {
 									ChannelPipeline pipe = ch.pipeline();
-									pipe.addLast(LoggingHandlerUtil.getInstance(getConfig().isDebug()));
+									if(getConfig().isDebug()){
+										pipe.addLast(LoggingHandlerUtil.getInstance());
+									}
 									pipe.addLast(targetHandler);
 								}
 							}).option(ChannelOption.AUTO_READ, false);

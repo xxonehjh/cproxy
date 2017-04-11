@@ -33,8 +33,10 @@ public class Client {
 				@Override
 				public void initChannel(SocketChannel ch) throws Exception {
 					ChannelPipeline pipe = ch.pipeline();
-					pipe.addLast(LoggingHandlerUtil.getInstance(context.getConfig().isDebug()));
-					pipe.addLast(Encoder.INSTANCE, Decoder.INSTANCE, context.getClientHandler());
+					if(context.getConfig().isDebug()){
+						pipe.addLast(LoggingHandlerUtil.getInstance());
+					}
+					pipe.addLast(Encoder.getInstance(), Decoder.getInstance(), context.getClientHandler());
 				}
 			});
 			final String host = context.getConfig().getServerInnerHost();

@@ -8,7 +8,6 @@ import com.xxonehjh.cproxy.util.ChannelUtils;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.handler.codec.MessageToByteEncoder;
 
 /**
@@ -17,13 +16,14 @@ import io.netty.handler.codec.MessageToByteEncoder;
  * @author xxonehjh
  *
  */
-@Sharable
 public class Encoder extends MessageToByteEncoder<IMsg> {
 
 	private static final Logger logger = LogManager.getLogger(Encoder.class);
 
-	public static final Encoder INSTANCE = new Encoder();
-
+	public static final Encoder getInstance(){
+		return new Encoder();
+	}
+	
 	private Encoder() {
 	}
 	

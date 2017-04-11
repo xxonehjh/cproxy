@@ -20,7 +20,9 @@ public class InnerInitializer extends ChannelInitializer<SocketChannel> {
 	@Override
 	public void initChannel(SocketChannel ch) {
 		ChannelPipeline pipe = ch.pipeline();
-		pipe.addLast(LoggingHandlerUtil.getInstance(context.getConfig().isDebug()));
-		pipe.addLast(Encoder.INSTANCE, Decoder.INSTANCE, context.getInnerHandler());
+		if(context.getConfig().isDebug()){
+			pipe.addLast(LoggingHandlerUtil.getInstance());
+		}
+		pipe.addLast(Encoder.getInstance(), Decoder.getInstance(), context.getInnerHandler());
 	}
 }

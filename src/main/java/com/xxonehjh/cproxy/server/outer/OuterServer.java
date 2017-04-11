@@ -25,7 +25,9 @@ public class OuterServer {
 			final ServerBootstrap b = new ServerBootstrap();
 			b.group(bossGroup, workerGroup);
 			b.channel(NioServerSocketChannel.class);
-			b.handler(LoggingHandlerUtil.getInstance(context.getConfig().isDebug()));
+			if(context.getConfig().isDebug()){
+				b.handler(LoggingHandlerUtil.getInstance());
+			}
 			b.childHandler(new OuterChannelInitializer(context));
 			b.childOption(ChannelOption.AUTO_READ, false);
 			for (int i = 1; i < ports.length; i++) {

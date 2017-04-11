@@ -11,7 +11,6 @@ import com.xxonehjh.cproxy.util.ChannelUtils;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
 /**
@@ -20,12 +19,13 @@ import io.netty.handler.codec.ByteToMessageDecoder;
  * @author xxonehjh
  *
  */
-@Sharable
 public class Decoder extends ByteToMessageDecoder {
 
 	private static Logger logger = LogManager.getLogger(Decoder.class);
 
-	public static final Decoder INSTANCE = new Decoder();
+	public static final Decoder getInstance(){
+		return new Decoder();
+	}
 
 	private Decoder() {
 	}

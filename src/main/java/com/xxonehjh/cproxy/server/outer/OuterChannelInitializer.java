@@ -19,8 +19,10 @@ public class OuterChannelInitializer extends ChannelInitializer<SocketChannel> {
 	public void initChannel(SocketChannel ch) {
 		int port = ch.localAddress().getPort();
 		ChannelPipeline pipe = ch.pipeline();
-		pipe.addLast(LoggingHandlerUtil.getInstance(context.getConfig().isDebug()));
+		if (context.getConfig().isDebug()) {
+			pipe.addLast(LoggingHandlerUtil.getInstance());
+		}
 		pipe.addLast(context.getInnerChannelManage(port).getOuterChannelHandler());
 	}
-	
+
 }
