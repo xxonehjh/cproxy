@@ -15,7 +15,6 @@ import com.xxonehjh.cproxy.server.ServerContext;
 import com.xxonehjh.cproxy.util.ChannelUtils;
 import com.xxonehjh.cproxy.util.TokenUtils;
 
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -56,7 +55,7 @@ public class InnerHandler extends ChannelInboundHandlerAdapter {
 				} else {
 					if (obj instanceof MsgProxyData) {
 						logger.info("写入外部通道{}:{}", client, msg);
-						client.writeAndFlush(Unpooled.copiedBuffer(((MsgProxyData) obj).getData()));
+						client.writeAndFlush(((MsgProxyData) obj).getData());
 					} else if (obj instanceof MsgProxyClose) {
 						ChannelUtils.closeOnFlush(client);
 					}

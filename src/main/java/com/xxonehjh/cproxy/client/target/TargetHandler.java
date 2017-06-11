@@ -6,10 +6,8 @@ import org.apache.logging.log4j.Logger;
 import com.xxonehjh.cproxy.Constants;
 import com.xxonehjh.cproxy.client.ClientContext;
 import com.xxonehjh.cproxy.protocol.MsgProxyData;
-import com.xxonehjh.cproxy.util.ByteUtils;
 import com.xxonehjh.cproxy.util.ChannelUtils;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -44,7 +42,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object obj) {
-		byte[] datas = ByteUtils.read((ByteBuf) obj);
+		byte[] datas = (byte[])obj;//ByteUtils.read((ByteBuf) obj);
 		logger.info("从目标通道读取{}:数据长度:{}", ctx.channel(), datas.length);
 		MsgProxyData msg = new MsgProxyData(getId(ctx), datas);
 		context.getTargetChannelManage().get(msg.getId()).getClientChannel().writeAndFlush(msg).addListener(listener);

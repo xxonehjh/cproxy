@@ -7,10 +7,8 @@ import com.xxonehjh.cproxy.Constants;
 import com.xxonehjh.cproxy.protocol.IMsg;
 import com.xxonehjh.cproxy.protocol.MsgProxyData;
 import com.xxonehjh.cproxy.server.ServerContext;
-import com.xxonehjh.cproxy.util.ByteUtils;
 import com.xxonehjh.cproxy.util.ChannelUtils;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -62,7 +60,7 @@ public class OuterHandler extends ChannelInboundHandlerAdapter {
 			logger.error("内部服务不可用,端口:{},外部请求:{}", port, outerChannel);
 			close();
 		} else {
-			byte[] datas = ByteUtils.read((ByteBuf) msg);
+			byte[] datas = (byte[])msg; // 这里如果没有设置编解码-直接读ByteBuf对象的值，会导致内存泄漏 【单个外部请求过来的数据会一直堆积，如果是用同一个channl上传文件，会导致内存不断加大】
 			logger.info("读取外部通道{}:数据长度:{}", outerChannel, datas.length);
 			IMsg obj = new MsgProxyData(outerChannel.attr(Constants.ATTR_KEY_ID).get(), datas);
 			innerChannel.writeAndFlush(obj).addListener(listener);

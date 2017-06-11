@@ -4,6 +4,8 @@ import com.xxonehjh.cproxy.client.core.ClientChannelManage;
 import com.xxonehjh.cproxy.client.core.ClientHandler;
 import com.xxonehjh.cproxy.client.target.TargetChannelManage;
 import com.xxonehjh.cproxy.client.target.TargetHandler;
+import com.xxonehjh.cproxy.protocol.util.DecoderForBytes;
+import com.xxonehjh.cproxy.protocol.util.EncoderForBytes;
 import com.xxonehjh.cproxy.util.LoggingHandlerUtil;
 
 import io.netty.bootstrap.Bootstrap;
@@ -20,7 +22,6 @@ public class ClientContext {
 	private TargetChannelManage targetChannelManage;
 	private ClientChannelManage clientChannelManage;
 	private ClientHandler clientHandler;
-	private TargetHandler targetHandler;
 	private Bootstrap targetBootstrap;
 
 	public ClientContext(String configPath) {
@@ -28,7 +29,6 @@ public class ClientContext {
 		targetChannelManage = new TargetChannelManage(this);
 		clientChannelManage = new ClientChannelManage(this);
 		clientHandler = ClientHandler.create(this);
-		targetHandler = TargetHandler.create(this);
 	}
 
 	public ClientConfig getConfig() {
@@ -61,7 +61,7 @@ public class ClientContext {
 									if(getConfig().isDebug()){
 										pipe.addLast(LoggingHandlerUtil.getInstance());
 									}
-									pipe.addLast(targetHandler);
+									pipe.addLast(EncoderForBytes.getInstance(), DecoderForBytes.getInstance(),TargetHandler.create(ClientContext.this));
 								}
 							}).option(ChannelOption.AUTO_READ, false);
 				}

@@ -10,8 +10,10 @@ public class ByteUtils {
 
 	public static final int BYTES_OF_LONG = 8;
 
+	public static final int MAX_BUFFER = 1024 * 1024 * 10;
+
 	public static byte[] read(ByteBuf buf) {
-		int length = buf.readableBytes();
+		int length = Math.min(buf.readableBytes(), MAX_BUFFER);
 		byte[] datas = new byte[length];
 		buf.readBytes(datas);
 		return datas;

@@ -10,7 +10,6 @@ import com.xxonehjh.cproxy.Constants;
 import com.xxonehjh.cproxy.client.ClientContext;
 import com.xxonehjh.cproxy.util.ByteArrayUtil;
 
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -55,7 +54,8 @@ public class TargetHandlerContext {
 			}
 			if (null != datas && datas.length > 0) {
 				logger.info("写入目标通道:{}:数据长度:{}", targetChannel, datas.length);
-				targetChannel.writeAndFlush(Unpooled.copiedBuffer(datas)).addListener(READ_OR_CLOSE);
+				//targetChannel.writeAndFlush(Unpooled.copiedBuffer(datas)).addListener(READ_OR_CLOSE);
+				targetChannel.writeAndFlush(datas).addListener(READ_OR_CLOSE);
 			}
 		}
 	}
@@ -64,7 +64,8 @@ public class TargetHandlerContext {
 		if (targetChannel.isActive()) {
 			writeCache();
 			logger.info("写入目标通道:{}:数据长度:{}", targetChannel, datas.length);
-			targetChannel.writeAndFlush(Unpooled.copiedBuffer(datas)).addListener(READ_OR_CLOSE);
+			//targetChannel.writeAndFlush(Unpooled.copiedBuffer(datas)).addListener(READ_OR_CLOSE);
+			targetChannel.writeAndFlush(datas).addListener(READ_OR_CLOSE);
 		} else {
 			synchronized (cache) {
 				cache.add(datas);

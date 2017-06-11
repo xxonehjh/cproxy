@@ -1,5 +1,7 @@
 package com.xxonehjh.cproxy.server.outer;
 
+import com.xxonehjh.cproxy.protocol.util.DecoderForBytes;
+import com.xxonehjh.cproxy.protocol.util.EncoderForBytes;
 import com.xxonehjh.cproxy.server.ServerContext;
 import com.xxonehjh.cproxy.util.LoggingHandlerUtil;
 
@@ -22,7 +24,7 @@ public class OuterChannelInitializer extends ChannelInitializer<SocketChannel> {
 		if (context.getConfig().isDebug()) {
 			pipe.addLast(LoggingHandlerUtil.getInstance());
 		}
-		pipe.addLast(context.getInnerChannelManage(port).getOuterChannelHandler());
+		pipe.addLast(EncoderForBytes.getInstance(), DecoderForBytes.getInstance(), context.getInnerChannelManage(port).getOuterChannelHandler());
 	}
 
 }
