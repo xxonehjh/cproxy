@@ -86,11 +86,9 @@ public class InnerChannelManage {
 	class InnerChannelHolder implements ChannelFutureListener {
 
 		private Channel innerChannel;
-		private OuterHandler outerHandler;
 
 		public InnerChannelHolder(Channel innerChannel) {
 			this.innerChannel = innerChannel;
-			this.outerHandler = new OuterHandler(getContext(), innerChannel, getPort());
 		}
 
 		public Channel getInnerChannel() {
@@ -98,7 +96,7 @@ public class InnerChannelManage {
 		}
 
 		public OuterHandler getOuterHandler() {
-			return outerHandler;
+			return new OuterHandler(getContext(), innerChannel, getPort());
 		}
 
 		@Override

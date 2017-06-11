@@ -39,7 +39,7 @@ public class InnerHandler extends ChannelInboundHandlerAdapter {
 	}
 
 	@Override
-	public void channelRead(final ChannelHandlerContext ctx, Object obj) {
+	public void channelRead(ChannelHandlerContext ctx, Object obj) {
 		IMsg msg = (IMsg) obj;
 		if (msg instanceof MsgPingReq) {
 			ChannelUtils.updateActiveTime(ctx.channel());
