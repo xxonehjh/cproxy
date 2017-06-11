@@ -51,7 +51,6 @@ public class Decoder extends ByteToMessageDecoder {
 			}
 			logger.info("{}读取{}", ctx.channel(), msg);
 			out.add(msg);
-			decode(ctx, in, out);
 		} catch (Exception e) {
 			ChannelUtils.exceptionCaught(ctx, e, logger);
 		}
