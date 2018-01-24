@@ -48,6 +48,10 @@ public class OuterHandler extends ChannelInboundHandlerAdapter {
 		if (innerChannel.isActive()) {
 			serverContext.getOuterChannelManage().reg(ctx.channel(), port);
 			ctx.channel().read();
+			
+			
+			IMsg obj = new MsgProxyData(outerChannel.attr(Constants.ATTR_KEY_ID).get(), Constants.EMPTY_BYTES);
+			innerChannel.writeAndFlush(obj).addListener(listener);
 		} else {
 			logger.error("服务不可用,端口:{},外部请求:{}", port, ctx.channel());
 			close();

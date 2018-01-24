@@ -36,7 +36,9 @@ public class TargetHandlerContext {
 			@Override
 			public void operationComplete(ChannelFuture future) {
 				if (future.isSuccess()) {
+					logger.error("创建目标通道成功:{}:id:{}", targetChannel, getId());
 					writeCache();
+					future.channel().read();
 				} else {
 					logger.error("创建目标通道失败:{}:id:{}: ex:({})", targetChannel, getId(), future.cause());
 					context.getTargetChannelManage().remove(getId());
