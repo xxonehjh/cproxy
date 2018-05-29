@@ -1,5 +1,7 @@
 package com.xxonehjh.cproxy.server;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -12,7 +14,7 @@ public class ServerConfig {
 
 	public ServerConfig(String path) {
 		prop = new Properties();
-		try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(path)) {
+		try (InputStream in = new File(path).exists() ? new FileInputStream(path) : this.getClass().getClassLoader().getResourceAsStream(path)) {
 			prop.load(in);
 		} catch (IOException e) {
 			throw new RuntimeException("加载配置文件" + Constants.SERVER_CONFIG + "失败", e);
