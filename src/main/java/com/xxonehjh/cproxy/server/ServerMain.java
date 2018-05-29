@@ -7,7 +7,7 @@ import com.xxonehjh.cproxy.server.outer.OuterServer;
 public class ServerMain {
 
 	public static void main(String[] args) {
-		String config = args.length>0?args[0]:Constants.SERVER_CONFIG;
+		String config = args.length > 0 && args[0].endsWith(".properties") ? args[0] : Constants.SERVER_CONFIG;
 		final ServerContext context = new ServerContext(config);
 
 		new Thread() {

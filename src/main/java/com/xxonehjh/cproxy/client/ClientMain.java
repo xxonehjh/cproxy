@@ -6,7 +6,7 @@ import com.xxonehjh.cproxy.client.core.Client;
 public class ClientMain {
 
 	public static void main(String[] args) throws Exception {
-		String config = args.length>0?args[0]:Constants.CLINET_CONFIG;
+		String config = args.length > 0 && args[0].endsWith(".properties") ?args[0]:Constants.CLINET_CONFIG;
 		ClientContext context = new ClientContext(config);
 		new Client().start(context);
 	}

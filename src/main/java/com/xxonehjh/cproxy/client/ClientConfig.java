@@ -14,7 +14,7 @@ public class ClientConfig {
 
 	public ClientConfig(String path) {
 		prop = new Properties();
-		try (InputStream in = new File(path).exists() ? new FileInputStream(path) : this.getClass().getClassLoader().getResourceAsStream(path)) {
+		try (InputStream in = new File(path).isFile() ? new FileInputStream(path) : this.getClass().getClassLoader().getResourceAsStream(path)) {
 			prop.load(in);
 		} catch (IOException e) {
 			throw new RuntimeException("加载配置文件" + Constants.CLINET_CONFIG + "失败", e);
