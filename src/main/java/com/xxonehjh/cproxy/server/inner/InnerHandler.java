@@ -16,6 +16,8 @@ import com.xxonehjh.cproxy.util.ChannelUtils;
 import com.xxonehjh.cproxy.util.TokenUtils;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -24,6 +26,16 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 public class InnerHandler extends ChannelInboundHandlerAdapter {
 
 	private static final Logger logger = LogManager.getLogger(InnerHandler.class);
+
+	private static final ChannelFutureListener logListener = new ChannelFutureListener() {
+		@Override
+		public void operationComplete(ChannelFuture future) {
+			if (!future.isSuccess()) {
+				logger.info("写入数据到{}失败:ex({})", future.channel(), future.cause());
+				future.channel().close();
+			}
+		}
+	};
 
 	private ServerContext context;
 
@@ -49,13 +61,13 @@ public class InnerHandler extends ChannelInboundHandlerAdapter {
 				Channel client = context.getOuterChannelManage().get(msgProxy.getId());
 				if (null == client) {
 					logger.error("未能找到客户通道:{}:{}", msgProxy.getId(), obj);
-				} else if (!client.isWritable()) {
+				} else if (!client.isActive()) {
 					logger.error("客户通道未能写入数据:{}:{}:{}", client, msgProxy.getId(), obj);
 					ChannelUtils.closeOnFlush(client);
 				} else {
 					if (obj instanceof MsgProxyData) {
 						logger.info("写入外部通道{}:{}", client, msg);
-						client.writeAndFlush(((MsgProxyData) obj).getData());
+						client.writeAndFlush(((MsgProxyData) obj).getData()).addListener(logListener);
 					} else if (obj instanceof MsgProxyClose) {
 						ChannelUtils.closeOnFlush(client);
 					}

@@ -30,7 +30,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 			if (future.isSuccess()) {
 				channel.read();
 			} else {
-				logger.info("写入数据失败:ex({})", future.cause());
+				logger.info("写入数据到:{}失败:ex({})", future.channel(), future.cause());
 				future.channel().close();
 			}
 		}
@@ -42,7 +42,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object obj) {
-		byte[] datas = (byte[])obj;//ByteUtils.read((ByteBuf) obj);
+		byte[] datas = (byte[]) obj;// ByteUtils.read((ByteBuf) obj);
 		logger.info("从目标通道读取{}:数据长度:{}", ctx.channel(), datas.length);
 		MsgProxyData msg = new MsgProxyData(getId(ctx), datas);
 		context.getTargetChannelManage().get(msg.getId()).getClientChannel().writeAndFlush(msg).addListener(listener);
