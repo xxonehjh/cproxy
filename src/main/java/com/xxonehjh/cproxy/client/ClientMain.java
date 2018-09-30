@@ -11,17 +11,19 @@ public class ClientMain {
 			new Client().start(context);
 		} else {
 			for (String item : args) {
-				final String config = item;
-				new Thread() {
-					public void run() {
-						ClientContext context = new ClientContext(config);
-						try {
-							new Client().start(context);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
+				if (item.endsWith(".properties")) {
+					final String config = item;
+					new Thread() {
+						public void run() {
+							ClientContext context = new ClientContext(config);
+							try {
+								new Client().start(context);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
 						}
-					}
-				}.start();
+					}.start();
+				}
 			}
 		}
 	}
